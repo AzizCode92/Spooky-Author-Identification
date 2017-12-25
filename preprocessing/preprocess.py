@@ -4,6 +4,8 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from time import time
+from sklearn.decomposition import NMF
+
 
 
 train = pd.read_csv("../data/train.csv")
@@ -51,11 +53,6 @@ lda = LatentDirichletAllocation(n_components=11, max_iter=5,
                                 learning_offset = 50.,
                                 random_state = 0)
 
-lda.fit(tf)
-
-
-
-
 def print_top_words(model, feature_names, n_top_words):
     for topic_idx, topic in enumerate(model.components_):
         message = "Topic #%d: " % topic_idx
@@ -63,11 +60,25 @@ def print_top_words(model, feature_names, n_top_words):
                              for i in topic.argsort()[:-n_top_words - 1:-1]])
         print(message)
     print()
-
+n_top_words = 20
 t0 = time()
 lda.fit(tf)
-n_top_words = 20
 print("done in %0.3fs." % (time() - t0))
 print("\nTopics in LDA model:")
 tf_feature_names = tf_vectorizer.get_feature_names()
 print_top_words(lda, tf_feature_names, n_top_words)
+
+
+
+
+################### Using NMF modelling ###################################
+
+# Fit the NMF model
+t1 = time()
+nmf = NMF(n_components=11, random_state=1,
+          alpha=.1, l1_ratio=.5)
+nmf.fit(tf)
+print("done in %0.3fs." % (time() - t1))
+print("\nTopics in NMF model:")
+tf_feature_names = tf_vectorizer.get_feature_names()
+print_top_words(nmf, tf_feature_names, n_top_words)
